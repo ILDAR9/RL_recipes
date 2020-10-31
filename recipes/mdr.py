@@ -1,34 +1,28 @@
-# Markov decision process MDR
+# Markov decision process MDP
 # Марковский процесс принятия решения МППР
 
 import torch
 
-T = torch.tensor([[0.4, 0.6],
-				   [0.8, 0.2]])
-T_2 = torch.matrix_power(T, 2)
-T_5 = torch.matrix_power(T, 5)
-T_10 = torch.matrix_power(T, 10)
-T_15 = torch.matrix_power(T, 15)
-T_20 = torch.matrix_power(T, 20)
+T = torch.tensor([[[0.8, 0.1, 0.1],
+				   [0.1, 0.6, 0.3]],
+				  [[0.7, 0.2, 0.1],
+				   [0.1, 0.8, 0.1]],
+				  [[0.6, 0.2, 0.2],
+				    [0.1, 0.4, 0.5]]])
 
-v = torch.tensor([[0.7, 0.3]])
-v_1 = torch.mm(v, T)
-v_2 = torch.mm(v, T_2)
-v_5 = torch.mm(v, T_5)
-v_10 = torch.mm(v, T_10)
-v_15 = torch.mm(v, T_15)
-v_20 = torch.mm(v, T_20)
+R = torch.tensor([1., 0., -1.])
+gamma = 0.5
+action = 0
 
-print(T)
-print(T_2)
-print(T_5)
-print(T_10)
-print(T_15)
-print(T_20)
+def cal_value_matrix_inversion(gamma, trans_matrix, rewards):
+	"""
+	Функция ценности стратегии измеряет насколько агенту  выгодно находиться
+	в каждом состоянии при лседовании стратегии
+	"""
+	inv = torch.inverse(torch.eye(rewards.shape[0]) - gamma*trans_matrix)
+	V = torch.mm(inv, rewards.reshape(-1, 1))
+	return V
 
-print(v_1)
-print(v_2)
-print(v_5)
-print(v_10)
-print(v_15)
-print(v_20)
+trans_matrix = T[:, action]
+V = cal_value_matrix_inversion(gamma, trans_matrix, R)
+print(f"Функция ценности при оптимальной стратегии:\n{V}")

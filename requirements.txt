@@ -1,0 +1,6 @@
+numpy
+torch
+gym
+gym[atari]
+gym[box2d]
+tqdm
