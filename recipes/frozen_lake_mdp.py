@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 env = gym.make("FrozenLake-v0")
+# env = gym.make("FrozenLake8x8-v0")
 n_state = env.observation_space.n
 print('states', n_state)
 n_action = env.action_space.n
@@ -58,7 +59,6 @@ def value_iteration(env, gamma, threshold):
 			for action in range(n_action):
 				for trans_prob, new_state, reward, _ in env.env.P[state][action]:
 					v_actions[action] += trans_prob * (reward + gamma * V[new_state])
-
 			V_temp[state] = torch.max(v_actions)
 		max_delta = torch.max(torch.abs(V - V_temp))
 		V = V_temp.clone()
@@ -111,16 +111,62 @@ def mdp_gamma_analysis():
 ##################
 
 def policy_estimation(env, policy, gamma, threshold):
-	pass
+	"""
+	Выполняет оценивание стратегии
+	похожа value_iteration только с заданым policy
+	@param policy: матрица стратегии, содержащая вероятности действий в каждом состоянии
+	@return: ценности при следовании заданной стратегии
+	"""
+	V = torch.zeros(n_state)
+	while True:
+		V_temp = torch.zeros(n_state)
+		for state in range(n_state):
+			action = policy[state].item()
+			for trans_prob, new_state, reward, _ in env.env.P[state][action]:
+				V_temp[state] += trans_prob * (reward + gamma * V[new_state])
+		max_delta = torch.max(torch.abs(V - V_temp))
+		V = V_temp.clone()
+		if max_delta <= threshold:
+			break
+	return V
 
 def policy_improvement(env, V, gamma):
-	pass
+	"""
+	Улучшает стратегию на основе ценностей
+	@param V: ценности
+	@return: стратегия
+	"""
+	policy = torch. zeros(n_state)
+	for state in range(n_state):
+		v_actions = torch.zeros(n_action)
+		for action in range(n_action):
+			for trans_prob, new_state, reward, _ in env.env.P[state][action]:
+				v_actions[action] += trans_prob * (reward + gamma*V[new_state])
+		policy[state] = torch.argmax(v_actions)
+	return policy
 
 def policy_iteration(env, gamma, threshold):
-	pass
+	"""
+	Имитирует заданную среду с помощью алгоритма итерации по стратегиям
+	@return: оптимальные ценности и оптимальная стратегия для данной окружающей среды
+	"""
+	policy = torch.randint(high = n_action, size=(n_state,)).float()
+	while True:
+		V = policy_estimation(env, policy, gamma, threshold)
+		policy_improved = policy_improvement(env, V, gamma)
+		if torch.equal(policy_improved, policy):
+			return V, policy_improved
+		policy = policy_improved
+
 
 def mdp_policy_base():
-	pass
+	gamma = 0.99
+	threshold = 0.0001
+	V_optimal, optimal_policy = policy_iteration(env, gamma, threshold)
+	print(f"Optimal value:\n{V_optimal}")
+	print(f"Optimal policy:\n{optimal_policy}")
+	avg_reward = eval_policy(env, optimal_policy)
+	print(f"Среднее полное вознаграждение при оптимальной стратегии: {avg_reward}")
 
 if __name__ == "__main__":
 	# random_search()
