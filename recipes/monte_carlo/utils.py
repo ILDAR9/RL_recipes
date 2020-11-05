@@ -1,42 +1,8 @@
-import torch
-import gym
-from collections import defaultdict
 import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-
-env = gym.make("Blackjack-v0")
-env.reset()
-
-def run_episode(env, hold_score):
-	state = env.reset()
-	rewards = []
-	states = [state]
-	is_done = False
-	while not is_done:
-		action = 1 if state[0] < hold_score else 0
-		state, reward, is_done, info = env.step(action)
-		states.append(state)
-		rewards.append(reward)
-	return states, rewards
-
-def mc_prediction_first_visit(env, hold_score, gamma, n_episode):
-	V = defaultdict(float)
-	N = defaultdict(int)
-	for episode in range(n_episode):
-		states_t, rewards_t = run_episode(env, hold_score)
-		return_t = 0
-		G = {}
-		for state_t, reward_t in zip(states_t[1::-1], rewards_t[::-1]):
-			return_t = gamma * return_t + reward_t
-			G[state_t] = return_t
-		for state, return_t in G.items():
-			if state[0] <= 21:
-				V[state] += return_t
-				N[state] += 1
-	for state in V:
-		V[state] = V[state] / N[state]
-	return V
+import torch
+from collections import defaultdict
 
 def plot_surface(X, Y, Z, title):
 	fig = plt.figure(figsize=(20, 10))
@@ -63,12 +29,29 @@ def plot_blackjack_value(V):
 	plot_surface(X, Y, values_to_plot[:,:,0].numpy(), "Функция ценности без играющего туза")
 	plot_surface(X, Y, values_to_plot[:,:,1].numpy(), "Функция ценности с играющим туза")
 
-hold_score = 20
-gamma = 1
-n_episode = 500000
+def simulate_episode(env , policy):
+	state = env.reset()
+	is_done = False
+	while not is_done:
+		action = policy[state]
+		state, reward, is_done, info = env.step(action)
+	return reward
 
-V = mc_prediction_first_visit(env, hold_score, gamma, n_episode)
-print("Функция цености, вычисления методом МК первого посещения:\n", V)
-print("Количество состояний:", len(V))
+def eval_policy(env, optimal_policy, optimal_Q):
+	n_episode = 100000
+	n_win_optimal = 0
+	n_lose_optimal = 0
+	for _ in range(n_episode):
+		reward = simulate_episode(env, optimal_policy)
+		if reward == 1:
+			n_win_optimal += 1
+		elif reward == -1:
+			n_lose_optimal += 1
 
-plot_blackjack_value(V)
+	print("Вероятность выигрыша при оптимальной стратегии:", n_win_optimal/n_episode)
+	print("Вероятность проигрыша при оптимальной стратегии", n_lose_optimal/n_episode)
+
+	optimal_value = defaultdict(float)
+	for state, action_values in optimal_Q.items():
+		optimal_value[state] = torch.max(action_values).item()
+	plot_blackjack_value(optimal_value)
