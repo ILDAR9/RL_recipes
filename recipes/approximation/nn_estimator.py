@@ -5,6 +5,9 @@ import math
 
 class Estimator():
     def __init__(self, n_feat, n_state, n_action, n_hidden=50, lr=0.05):
+        """
+        @param n_hidden: if n_hidden == 0 them it will convert to Linear estimator
+        """
         self.w, self.b = self.get_gaussian_wb(n_feat, n_state)
         self.n_feat = n_feat
         self.models = []
@@ -20,7 +23,11 @@ class Estimator():
                         torch.nn.ReLU(),
                         torch.nn.Linear(n_hidden, 1))
             self.models.append(model)
-            optimizer = torch.optim.Adam(model.parameters(), lr)
+
+            if n_hidden == 0:
+                optimizer = torch.optim.SGD(model.parameters(), lr)
+            else:
+                optimizer = torch.optim.Adam(model.parameters(), lr)
             self.optimizers.append(optimizer)
 
     def get_gaussian_wb(self, n_feat, n_state, sigma=.2):
