@@ -2,25 +2,19 @@ import torch
 from windy_gridworld import WindyGridworldEnv
 from collections import defaultdict
 from tqdm import tqdm
-
-env = WindyGridworldEnv()
-
-
-def gen_epsilon_greedy_policy(n_action, epsilon):
-    def policy_function(state, Q):
-        probs = torch.ones(n_action) * epsilon / n_action
-        best_action = torch.argmax(Q[state]).item()
-        probs[best_action] += 1.0 - epsilon
-        action = torch.multinomial(probs, 1).item()
-        return action
-    return policy_function
+from utils import plot_length_reward, gen_epsilon_greedy_policy
 
 
-def sarsa(env, gamma, n_episode, alpha):
+def sarsa(env, gamma, n_episode, alpha, do_plot=False):
     """
     Obtain the optimal policy with on-policy SARSA algorithm
     @return: the optimal Q-function, and the optimal policy
     """
+    epsilon = 0.1
+    epsilon_greedy_policy = gen_epsilon_greedy_policy(env.action_space.n, epsilon)
+    length_episode = [0] * n_episode
+    total_reward_episode = [0] * n_episode 
+
     n_action = env.action_space.n
     Q = defaultdict(lambda: torch.zeros(n_action))
     for episode in tqdm(range(n_episode), total = n_episode):
@@ -41,32 +35,17 @@ def sarsa(env, gamma, n_episode, alpha):
     policy = {}
     for state, actions in Q.items():
         policy[state] = torch.argmax(actions).item()
+    if do_plot:
+        plot_length_reward(length_episode, total_reward_episode)
+    show_metrics(length_episode, total_reward_episode)
     return Q, policy
 
-gamma = 1
-n_episode = 500
-alpha = 0.4
-epsilon = 0.1
-epsilon_greedy_policy = gen_epsilon_greedy_policy(env.action_space.n, epsilon)
+if __name__ == "__main__":
+    env = WindyGridworldEnv()
+    gamma = 1
+    n_episode = 500
+    alpha = 0.4
 
-length_episode = [0] * n_episode
-total_reward_episode = [0] * n_episode
+    optimal_Q, optimal_policy = sarsa(env, gamma, n_episode, alpha)
 
-optimal_Q, optimal_policy = sarsa(env, gamma, n_episode, alpha)
-
-
-print('The optimal policy:\n', optimal_policy)
-
-import matplotlib.pyplot as plt
-plt.plot(length_episode)
-plt.title('Episode length over time')
-plt.xlabel('Episode')
-plt.ylabel('Length')
-plt.show()
-
-
-plt.plot(total_reward_episode)
-plt.title('Episode reward over time')
-plt.xlabel('Episode')
-plt.ylabel('Total reward')
-plt.show()
+    print('The optimal policy:\n', optimal_policy)
