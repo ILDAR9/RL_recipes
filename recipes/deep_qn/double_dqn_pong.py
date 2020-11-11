@@ -9,6 +9,13 @@ from torch.autograd import Variable
 import torchvision.transforms as T
 from PIL import Image
 
+if torch.cuda.is_available():  
+    dev = "cuda:0" 
+else:  
+    dev = "cpu"
+print(dev)
+device = torch.device(dev)
+
 env = gym.envs.make("PongDeterministic-v4")
 
 state_shape = env.observation_space.shape
@@ -29,6 +36,7 @@ transform = T.Compose([T.ToPILImage(),
                        T.Resize((image_size, image_size), interpolation=Image.CUBIC),
                        T.ToTensor(),
                        ])
+transform.to(device)
 
 
 def get_state(obs):
@@ -50,7 +58,9 @@ class DQN():
             torch.nn.ReLU(),
             torch.nn.Linear(n_hidden[1], n_action)
         )
+        self.model.to(device)
         self.model_target = copy.deepcopy(self.model)
+        self.model_target.to(device)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr)
 
     def update(self, s, y):
@@ -59,8 +69,8 @@ class DQN():
         @param s: state
         @param y: target value
         """
-        y_pred = self.model(torch.Tensor(s))
-        loss = self.criterion(y_pred, Variable(torch.Tensor(y)))
+        y_pred = self.model(torch.Tensor(s, device=device))
+        loss = self.criterion(y_pred, Variable(torch.Tensor(y, device=device)))
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
@@ -72,7 +82,7 @@ class DQN():
         @return: Q values of the state for all actions
         """
         with torch.no_grad():
-            return self.model(torch.Tensor(s))
+            return self.model(torch.Tensor(s, device=device))
 
     def target_predict(self, s):
         """
@@ -81,7 +91,7 @@ class DQN():
         @return: targeted Q values of the state for all actions
         """
         with torch.no_grad():
-            return self.model_target(torch.Tensor(s))
+            return self.model_target(torch.Tensor(s, device=device))
 
     def replay(self, memory, replay_size, gamma):
         """
