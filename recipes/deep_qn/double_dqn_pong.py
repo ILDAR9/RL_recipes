@@ -3,6 +3,11 @@ import torch
 import random
 from tqdm import tqdm
 from utils import *
+from collections import deque
+import copy
+from torch.autograd import Variable
+import torchvision.transforms as T
+from PIL import Image
 
 env = gym.envs.make("PongDeterministic-v4")
 
@@ -15,9 +20,6 @@ print(env.unwrapped.get_action_meanings())
 
 ACTIONS = [0, 2, 3]
 n_action = 3
-
-import torchvision.transforms as T
-from PIL import Image
 
 image_size = 84
 
@@ -35,10 +37,7 @@ def get_state(obs):
     state = transform(state)
     return state
 
-
-from collections import deque
-import copy
-from torch.autograd import Variable
+memory = deque(maxlen=10000)
 
 
 class DQN():
@@ -178,7 +177,6 @@ if __name__ == "__main__":
     target_update = 10
 
     dqn = DQN(n_state, n_action, n_hidden, lr)
-    memory = deque(maxlen=10000)
 
     q_learning(env, dqn, n_episode, replay_size, target_update, gamma=.9, epsilon=1)
     plot_total_reward_episoed(total_reward_episode)
