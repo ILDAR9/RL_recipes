@@ -56,8 +56,8 @@ class DQN():
             torch.nn.Linear(n_hidden[0], n_hidden[1]),
             torch.nn.ReLU(),
             torch.nn.Linear(n_hidden[1], n_action)
-        ).to(device)
-        self.model_target = copy.deepcopy(self.model).to(device)
+        ).cuda()
+        self.model_target = copy.deepcopy(self.model).cuda()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr)
 
     def update(self, s, y):
