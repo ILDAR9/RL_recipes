@@ -36,14 +36,13 @@ transform = T.Compose([T.ToPILImage(),
                        T.Resize((image_size, image_size), interpolation=Image.CUBIC),
                        T.ToTensor(),
                        ])
-transform.to(device)
 
 
 def get_state(obs):
     state = obs.transpose((2, 0, 1))
     state = torch.from_numpy(state)
     state = transform(state)
-    return state
+    return state.cuda()
 
 memory = deque(maxlen=10000)
 
