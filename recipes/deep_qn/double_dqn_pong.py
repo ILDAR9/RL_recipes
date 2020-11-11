@@ -79,7 +79,7 @@ class DQN():
         @return: Q values of the state for all actions
         """
         with torch.no_grad():
-            return self.model(torch.Tensor(s).to(device)).cpu()
+            return self.model(torch.Tensor(s)).cpu()
 
     def target_predict(self, s):
         """
