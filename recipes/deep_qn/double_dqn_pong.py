@@ -56,10 +56,8 @@ class DQN():
             torch.nn.Linear(n_hidden[0], n_hidden[1]),
             torch.nn.ReLU(),
             torch.nn.Linear(n_hidden[1], n_action)
-        )
-        self.model.to(device)
-        self.model_target = copy.deepcopy(self.model)
-        self.model_target.to(device)
+        ).to(device)
+        self.model_target = copy.deepcopy(self.model).to(device)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr)
 
     def update(self, s, y):
@@ -68,8 +66,8 @@ class DQN():
         @param s: state
         @param y: target value
         """
-        y_pred = self.model(torch.Tensor(s, device=device))
-        loss = self.criterion(y_pred, Variable(torch.Tensor(y, device=device)))
+        y_pred = self.model(torch.Tensor(s).to(device))
+        loss = self.criterion(y_pred, Variable(torch.Tensor(y).to(device)))
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
@@ -81,7 +79,7 @@ class DQN():
         @return: Q values of the state for all actions
         """
         with torch.no_grad():
-            return self.model(torch.Tensor(s, device=device))
+            return self.model(torch.Tensor(s).to(device))
 
     def target_predict(self, s):
         """
@@ -90,7 +88,7 @@ class DQN():
         @return: targeted Q values of the state for all actions
         """
         with torch.no_grad():
-            return self.model_target(torch.Tensor(s, device=device))
+            return self.model_target(torch.Tensor(s).to(device))
 
     def replay(self, memory, replay_size, gamma):
         """
