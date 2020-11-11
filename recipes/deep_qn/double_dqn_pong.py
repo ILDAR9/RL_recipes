@@ -79,7 +79,7 @@ class DQN():
         @return: Q values of the state for all actions
         """
         with torch.no_grad():
-            return self.model(torch.Tensor(s).to(device))
+            return self.model(torch.Tensor(s).to(device)).cpu()
 
     def target_predict(self, s):
         """
@@ -88,7 +88,7 @@ class DQN():
         @return: targeted Q values of the state for all actions
         """
         with torch.no_grad():
-            return self.model_target(torch.Tensor(s).to(device))
+            return self.model_target(torch.Tensor(s).to(device)).cpu()
 
     def replay(self, memory, replay_size, gamma):
         """
