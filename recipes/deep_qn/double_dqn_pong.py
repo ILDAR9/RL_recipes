@@ -136,6 +136,7 @@ def q_learning(env, estimator, n_episode, replay_size, target_update=10, gamma=1
     @param epsilon: parameter for epsilon_greedy
     @param epsilon_decay: epsilon decreasing factor
     """
+    total_reward_episode = [0] * n_episode
     for episode in tqdm(range(n_episode), total=n_episode):
         if episode % target_update == 0:
             estimator.copy_target()
@@ -164,6 +165,7 @@ def q_learning(env, estimator, n_episode, replay_size, target_update=10, gamma=1
 
         print('Episode: {}, total reward: {}, epsilon: {}'.format(episode, total_reward_episode[episode], epsilon))
         epsilon = max(epsilon * epsilon_decay, 0.01)
+    return total_reward_episode
 
 if __name__ == "__main__":
     n_state = image_size * image_size
@@ -177,7 +179,6 @@ if __name__ == "__main__":
 
     dqn = DQN(n_state, n_action, n_hidden, lr)
     memory = deque(maxlen=10000)
-    total_reward_episode = [0] * n_episode
 
     q_learning(env, dqn, n_episode, replay_size, target_update, gamma=.9, epsilon=1)
     plot_total_reward_episoed(total_reward_episode)
