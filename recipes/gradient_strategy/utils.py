@@ -2,17 +2,22 @@ import time
 import matplotlib.pyplot as plt
 import torch
 
-def show_resut(env, estimator, obs2state=None):
+def show_resut(env, estimator):
     state = env.reset()
-    if obs2state:
-        state = obs2state(state)
     is_done = False
     while not is_done:
         q_values = estimator.predict(state)
         action = torch.argmax(q_values).item()
         state, reward, is_done, _ = env.step(action)
-        if obs2state:
-            state = obs2state(state)
+        env.render()
+    time.sleep(3)
+
+def show_result_action(env, estimator):
+    state = env.reset()
+    is_done = False
+    while not is_done:
+        action = estimator.get_action(state)[0]
+        state, reward, is_done, _ = env.step(action)
         env.render()
     time.sleep(3)
 

@@ -110,7 +110,7 @@ def q_learning(env, estimator, n_episode, gamma=1.0, epsilon=0.1, epsilon_decay=
 n_state = env.observation_space.shape[0]
 n_action = env.action_space.n
 n_hidden = 50
- lr = 0.001
+lr = 0.001
 dqn = DQN(n_state, n_action, n_hidden, lr)
 
 
