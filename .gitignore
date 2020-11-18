@@ -1,0 +1,27 @@
+*.egg-info/
+
+.idea/
+
+logs/
+.ipynb_checkpoints
+
+*.pth
+
+# Trash
+.DS_Store
+**/__pycache__/
+.coverage
+dist/
+/build/
+tmp/
+run/
+/env/
+/notebooks/
+
+*.pkl
+*.pickle
+*.bt
+
+.eggs/
+
+*.pyc
