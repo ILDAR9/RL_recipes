@@ -4,12 +4,11 @@ from utils import pre_processing
 from tqdm import tqdm
 
 saved_path = 'trained_models'
-model = torch.load(f"{saved_path}/model_120.pth")
-# model = torch.load(f"{saved_path}/final.pth")
+model = torch.load(f"{saved_path}/model_45000.pth")
 
 
 image_size = 84
-n_episode = 100
+n_episode = 5
 
 
 

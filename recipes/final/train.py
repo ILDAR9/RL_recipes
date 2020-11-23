@@ -8,8 +8,6 @@ from flappy_bird import *
 from utils import pre_processing
 
 
-
-
 def gen_epsilon_greedy_policy(estimator, epsilon, n_action):
     def policy_function(state):
         if random.random() < epsilon:
@@ -34,7 +32,12 @@ n_action = 2
 
 torch.manual_seed(123)
 
+N = 45000
+
 estimator = DQN(n_action)
+if N > 0:
+    estimator.model = torch.load(f"{saved_path}/model_{N}.pth")
+
 
 memory = deque(maxlen=memory_size)
 
@@ -44,7 +47,7 @@ image = pre_processing(image[:screen_width, :int(env.base_y)], image_size, image
 image = torch.from_numpy(image)
 state = torch.cat(tuple(image for _ in range(4)))[None, :, :, :]
 
-for iter in tqdm(range(n_iter), total=n_iter):
+for iter in tqdm(range(N, n_iter), initial = N, total=n_iter):
     epsilon = final_epsilon + (n_iter - iter) * (init_epsilon - final_epsilon) / n_iter
     policy = gen_epsilon_greedy_policy(estimator, epsilon, n_action)
     action = policy(state)
@@ -55,7 +58,7 @@ for iter in tqdm(range(n_iter), total=n_iter):
     memory.append([state, action, next_state, reward, is_done])
     loss = estimator.replay(memory, batch_size, gamma)
     state = next_state
-    if (iter+1) % 1000 == 0:
+    if (iter+1) % 5000 == 0:
         out_path = f"{saved_path}/model_{iter+1}.pth"
         print("Iteration: {}/{}, Action: {}, Loss: {}, Epsilon {}, Reward: {}".format(
             iter + 1, n_iter, action, loss, epsilon, reward))
